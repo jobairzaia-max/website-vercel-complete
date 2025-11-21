@@ -1,0 +1,65 @@
+<script>
+async function loadPolicies() {
+    const policyList = document.getElementById('policyList');
+    const loading = document.getElementById('loading');
+    
+    try {
+        // 1. 先加载今日政策
+        const latestRes = await fetch('/policy_data.json');
+        const latestData = await latestRes.json();
+        
+        // 2. 若今日无政策，强制加载历史政策（确保不空白）
+        let policiesToShow = latestData.policies;
+        if (policiesToShow.length === 0) {
+            const historyRes = await fetch('/historical_policies.json');
+            const historyData = await historyRes.json();
+            policiesToShow = historyData.policies;
+            document.getElementById('historyTip').classList.remove('d-none');
+        }
+        
+        // 3. 渲染政策列表
+        policyList.innerHTML = policiesToShow.map(p => `
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header ${p.type === '国家级' ? 'bg-danger/10' : 'bg-primary/10'}">
+                        <span class="badge ${p.type === '国家级' ? 'bg-danger' : 'bg-primary'}">${p.type}</span>
+                        <span class="float-end">${p.date}</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title fs-6">
+                            <a href="${p.url}" target="_blank" class="text-decoration-none hover:text-primary">
+                                ${p.title}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted small">来源：${p.department}</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="${p.url}" target="_blank" class="btn btn-sm btn-outline-primary">查看原文</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (e) {
+        // 极端情况：直接显示预设静态政策
+        policyList.innerHTML = `
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-danger/10">
+                        <span class="badge bg-danger">国家级</span>
+                        <span class="float-end">2025-10-15</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title fs-6">
+                            <a href="http://www.most.gov.cn/ztzl/gxqyrd/202510/t20251015_188888.htm" target="_blank">关于开展2025年高新技术企业认定工作的通知</a>
+                        </h5>
+                        <p class="card-text text-muted small">来源：科技部</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    } finally {
+        loading.classList.add('d-none');
+    }
+}
+</script>
