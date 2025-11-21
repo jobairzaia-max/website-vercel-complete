@@ -1,65 +1,90 @@
-<script>
-async function loadPolicies() {
-    const policyList = document.getElementById('policyList');
-    const loading = document.getElementById('loading');
-    
-    try {
-        // 1. 先加载今日政策
-        const latestRes = await fetch('/policy_data.json');
-        const latestData = await latestRes.json();
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>福建省惠企政策库（含高新/专精特新认证）</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .policy-card { transition: transform 0.3s; }
+        .policy-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-5">🔍 福建省惠企政策库</h1>
+        <p class="text-center text-muted mb-5">覆盖国家级+省级政策 | 数据更新时间：2025-11-22</p>
+
         
-        // 2. 若今日无政策，强制加载历史政策（确保不空白）
-        let policiesToShow = latestData.policies;
-        if (policiesToShow.length === 0) {
-            const historyRes = await fetch('/historical_policies.json');
-            const historyData = await historyRes.json();
-            policiesToShow = historyData.policies;
-            document.getElementById('historyTip').classList.remove('d-none');
+        <div id="policyList" class="row g-4 mt-4">
+            
+            <div class="col-12 text-center" id="loading">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-3">正在加载政策数据...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 渲染政策列表（修复：确保HTML结构正确）
+        function renderPolicies(policies) {
+            const container = document.getElementById('policyList');
+            if (policies.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center text-muted py-5">
+                        <p>暂无政策数据，请稍后重试</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 生成政策卡片HTML
+            container.innerHTML = policies.map(p => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card policy-card shadow-sm h-100">
+                        <div class="card-header ${p.type === '国家级' ? 'bg-danger/10' : 'bg-primary/10'}">
+                            <span class="badge ${p.type === '国家级' ? 'bg-danger' : 'bg-primary'}">${p.type}</span>
+                            <span class="float-end">${p.date}</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title fs-6 text-truncate-2">${p.title}</h5>
+                            <p class="card-text text-muted small">发布部门：${p.department}</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="${p.url}" target="_blank" class="btn btn-sm btn-outline-primary">查看原文</a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
-        
-        // 3. 渲染政策列表
-        policyList.innerHTML = policiesToShow.map(p => `
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-header ${p.type === '国家级' ? 'bg-danger/10' : 'bg-primary/10'}">
-                        <span class="badge ${p.type === '国家级' ? 'bg-danger' : 'bg-primary'}">${p.type}</span>
-                        <span class="float-end">${p.date}</span>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fs-6">
-                            <a href="${p.url}" target="_blank" class="text-decoration-none hover:text-primary">
-                                ${p.title}
-                            </a>
-                        </h5>
-                        <p class="card-text text-muted small">来源：${p.department}</p>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <a href="${p.url}" target="_blank" class="btn btn-sm btn-outline-primary">查看原文</a>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        
-    } catch (e) {
-        // 极端情况：直接显示预设静态政策
-        policyList.innerHTML = `
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-header bg-danger/10">
-                        <span class="badge bg-danger">国家级</span>
-                        <span class="float-end">2025-10-15</span>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fs-6">
-                            <a href="http://www.most.gov.cn/ztzl/gxqyrd/202510/t20251015_188888.htm" target="_blank">关于开展2025年高新技术企业认定工作的通知</a>
-                        </h5>
-                        <p class="card-text text-muted small">来源：科技部</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    } finally {
-        loading.classList.add('d-none');
-    }
-}
-</script>
+
+        // 加载政策数据（修复：正确路径+完整错误处理）
+        document.addEventListener('DOMContentLoaded', () => {
+            const loading = document.getElementById('loading');
+            fetch('/historical_policies.json')  // ✅ 正确路径（public文件夹映射到根目录）
+                .then(res => {
+                    if (!res.ok) throw new Error(`数据加载失败（${res.status}）`);
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data.policies || !Array.isArray(data.policies)) {
+                        throw new Error('政策数据格式错误（缺少policies数组）');
+                    }
+                    renderPolicies(data.policies);  // 渲染政策列表
+                })
+                .catch(err => {
+                    // 显示用户友好的错误提示（不再空白）
+                    loading.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger p-3">
+                                ⚠️ 政策库加载失败：${err.message}
+                                <hr>
+                                <small>请检查：1. 网络连接 2. historical_policies.json文件是否存在</small>
+                            </div>
+                        </div>
+                    `;
+                });
+        });
+    </script>
+</body>
+</html>
