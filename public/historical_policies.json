@@ -1,0 +1,33 @@
+{
+  "update_time": "2025-11-21",
+  "policies": [
+    {
+      "title": "关于开展2025年高新技术企业认定工作的通知",
+      "date": "2025-10-15",
+      "url": "http://www.most.gov.cn/ztzl/gxqyrd/202510/t20251015_188888.htm",
+      "department": "科技部",
+      "type": "国家级"
+    },
+    {
+      "title": "2025年第三批专精特新“小巨人”企业培育工作启动",
+      "date": "2025-09-30",
+      "url": "https://www.miit.gov.cn/ztzl/zhuanjingtexin/202509/t20250930_188777.htm",
+      "department": "工信部",
+      "type": "国家级"
+    },
+    {
+      "title": "福建省2025年省级财政专项资金管理办法",
+      "date": "2025-10-28",
+      "url": "https://czt.fujian.gov.cn/zwgk/ztzl/czzj/202510/t20251028_7027000.htm",
+      "department": "福建省财政厅",
+      "type": "省级"
+    },
+    {
+      "title": "福州市中小微企业纾困资金申报指南",
+      "date": "2025-10-20",
+      "url": "http://www.fuzhou.gov.cn/zwgk/ztzl/hqzc/202510/t20251020_698888.htm",
+      "department": "福州市政府",
+      "type": "市级"
+    }
+  ]
+}
